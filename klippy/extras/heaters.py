@@ -335,6 +335,33 @@ class Heater:
                     "max_delta", 2.0, above=0.0
                 )
             elif control == "mpc":
+                if config_section.get("heater_power_1", default=None):
+                    if config_section.get("heater_power", default=None):
+                        raise config_section.error(
+                            "control_mpc must define only heater_power, or heater_power_x"
+                        )
+                    temp_profile["heater_power_1"] = config_section.getfloat(
+                        "heater_power_1", above=0.0
+                    )
+                    temp_profile["heater_power_2"] = config_section.getfloat(
+                        "heater_power_2", above=0.0
+                    )
+                    temp_profile["heater_temperature_1"] = (
+                        config_section.getfloat(
+                            "heater_temperature_1", above=0.0
+                        )
+                    )
+                    temp_profile["heater_temperature_2"] = (
+                        config_section.getfloat(
+                            "heater_temperature_2", above=0.0
+                        )
+                    )
+
+                else:
+                    temp_profile["heater_power"] = config_section.getfloat(
+                        "heater_power", above=0.0
+                    )
+
                 temp_profile["block_heat_capacity"] = config_section.getfloat(
                     "block_heat_capacity", above=0.0, default=None
                 )
@@ -347,9 +374,7 @@ class Heater:
                 temp_profile["smoothing"] = config_section.getfloat(
                     "smoothing", above=0.0, maxval=1.0, default=0.83
                 )
-                temp_profile["heater_power"] = config_section.getfloat(
-                    "heater_power", above=0.0
-                )
+                
                 temp_profile["sensor_responsiveness"] = config_section.getfloat(
                     "sensor_responsiveness", above=0.0, default=None
                 )

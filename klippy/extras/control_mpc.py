@@ -14,7 +14,7 @@ class ControlMPC:
         self.profile = profile
         self._load_profile()
         self.heater = heater
-        self.heater_max_power = heater.get_max_power() * self.const_heater_power
+        #self.heater_max_power = heater.get_max_power() * self.const_heater_power
 
         self.want_ambient_refresh = self.ambient_sensor is not None
         self.state_block_temp = (
@@ -116,11 +116,53 @@ class ControlMPC:
     def _heater_temp(self):
         return self.heater.get_temp(self.heater.reactor.monotonic())[0]
 
+    def heater_power(self, temperature):
+        if self.const_heater_power:
+            return self.const_heater_power
+
+        return (
+            self.const_heater_slope * temperature + self.const_heater_intercept
+        )
+
+    def heater_max_power(self, temperature):
+        return self.heater.get_max_power() * self.heater_power(temperature)
+
     def _load_profile(self):
+        self.const_heater_power = None
+
+        if "heater_power" in self.profile:
+            self.const_heater_power = self.profile["heater_power"]
+
+        else:
+            self.const_heater_power_1 = self.profile["heater_power_1"]
+            self.const_heater_temperature_1 = self.profile[
+                "heater_temperature_1"
+            ]
+            self.const_heater_power_2 = self.profile["heater_power_2"]
+            self.const_heater_temperature_2 = self.profile[
+                "heater_temperature_2"
+            ]
+
+            self.const_heater_slope = (
+                self.const_heater_power_2 - self.const_heater_power_1
+            ) / (
+                self.const_heater_temperature_2
+                - self.const_heater_temperature_1
+            )
+            self.const_heater_intercept = self.const_heater_power_1 - (
+                self.const_heater_slope * self.const_heater_temperature_1
+            )
+
+            print(
+                self.profile,
+                self.const_heater_slope,
+                self.const_heater_intercept,
+            )
+
         self.const_block_heat_capacity = self.profile["block_heat_capacity"]
         self.const_ambient_transfer = self.profile["ambient_transfer"]
         self.const_target_reach_time = self.profile["target_reach_time"]
-        self.const_heater_power = self.profile["heater_power"]
+        #self.const_heater_power = self.profile["heater_power"]
         self.const_smoothing = self.profile["smoothing"]
         self.const_sensor_responsiveness = self.profile["sensor_responsiveness"]
         self.const_min_ambient_change = self.profile["min_ambient_change"]
@@ -296,14 +338,14 @@ class ControlMPC:
             power = max(
                 0.0,
                 min(
-                    self.heater_max_power,
+                    self.heater_max_power(self.state_block_temp),
                     heating_power + loss_ambient + loss_filament,
                 ),
             )
         else:
             power = 0
 
-        duty = power / self.const_heater_power
+        duty = power / self.heater_power(self.state_block_temp)
 
         # logging.info(
         #     "mpc: [%.3f/%.3f] %.2f => %.2f / %.2f / %.2f = %.2f[%.2f+%.2f+%.2f] / %.2f, dT %.2f, E %.2f=>%.2f",
@@ -392,7 +434,6 @@ class MpcCalibrate:
             samples = self.heatup_test(gcmd, target_temp, control)
             first_res = self.process_first_pass(
                 samples,
-                self.orig_control.heater_max_power,
                 ambient_temp,
                 threshold_temp,
                 use_analytic,
@@ -424,7 +465,6 @@ class MpcCalibrate:
                 first_res,
                 transfer_res,
                 ambient_temp,
-                self.orig_control.heater_max_power,
             )
             logging.info("Second pass: %s", second_res)
 
@@ -546,7 +586,7 @@ class MpcCalibrate:
                 ret = temp > target
                 if ret and not reported[0]:
                     gcmd.respond_info(
-                        f"Waiting for heater to drop below {target} degrees Celsius"
+                        f"Waiting for heater to drop below {target} degrees celcius"
                     )
                     reported[0] = True
                 return ret
@@ -680,7 +720,6 @@ class MpcCalibrate:
     def process_first_pass(
         self,
         all_samples,
-        heater_power,
         ambient_temp,
         threshold_temp,
         use_analytic,
@@ -694,6 +733,9 @@ class MpcCalibrate:
                 best_lower = None
 
         t1_time = all_samples[best_lower][0] - all_samples[0][0]
+
+        t1_temp = all_samples[best_lower][1]
+        heater_power = self.orig_control.heater_max_power(t1_temp)
 
         samples = all_samples[best_lower:]
         pitch = math.floor((len(samples) - 1) / 2)
@@ -756,9 +798,11 @@ class MpcCalibrate:
             "dt": dt,
         }
 
-    def process_second_pass(
-        self, first_res, transfer_res, ambient_temp, heater_power
-    ):
+    def process_second_pass(self, first_res, transfer_res, ambient_temp):
+        heater_power = self.orig_control.heater_max_power(
+            transfer_res["target_temp"]
+        )
+
         target_ambient_temp = transfer_res["target_temp"] - ambient_temp
         ambient_transfer = transfer_res["base_power"] / target_ambient_temp
         asymp_T = ambient_temp + heater_power / ambient_transfer
