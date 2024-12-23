@@ -2019,6 +2019,10 @@ deprecated. It will be removed in the near future. Use
 <a href="Config_Reference.html#fans"><code>min_power</code></a>
 instead. The <code>printer[fan object].speed</code> status will be replaced by
 <code>printer[fan object].value</code> and <code>printer[fan object].power</code>.</p>
+<p>20241223: The <code>CLEAR_RETRACTION</code> command does not reset parameters to
+default config values anymore, a <a href="G-Codes.html#reset_retraction"><code>RESET_RETRACTION</code></a>
+command was added to achieve this. Automatic resetting behavior on
+events was removed.</p>
 <p>20240430: The <code>adc_ignore_limits</code> parameter in the <code>[danger_options]</code>
 config section has been renamed to <code>temp_ignore_limits</code> and it now
 covers all possible temperature sensors.</p>

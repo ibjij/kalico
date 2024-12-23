@@ -2648,7 +2648,7 @@ also find more details on limitations of this setup.</p>
 <p>A few prerequisites are needed to use sensorless homing:</p>
 <ol>
 <li>A stallGuard capable TMC stepper driver (tmc2130, tmc2209, tmc2660,
-   or tmc5160).</li>
+    tmc5160 or tmc2160).</li>
 <li>SPI / UART interface of the TMC driver wired to micro-controller
    (stand-alone mode does not work).</li>
 <li>The appropriate "DIAG" or "SG_TST" pin of TMC driver connected to
@@ -2715,7 +2715,7 @@ home_current: 1
 
 [stepper_x]
 endstop_pin: tmc2130_stepper_x:virtual_endstop
-homing_retract_dist: 10 
+homing_retract_dist: 10
 ...
 </code></pre></div>
 
@@ -2742,7 +2742,7 @@ command to set the highest sensitivity. For tmc2209:</p>
 <div class="highlight"><pre><span></span><code>SET_TMC_FIELD STEPPER=stepper_x FIELD=SGTHRS VALUE=255
 </code></pre></div>
 
-<p>For tmc2130, tmc5160, and tmc2660:</p>
+<p>For tmc2130, tmc5160, tmc2160, and tmc2660:</p>
 <div class="highlight"><pre><span></span><code>SET_TMC_FIELD STEPPER=stepper_x FIELD=sgt VALUE=-64
 </code></pre></div>
 
@@ -2811,7 +2811,7 @@ notable change is made to the printer hardware, then it will be
 necessary to run the tuning process again.</p>
 <h4 id="using-macros-when-homing">Using Macros when Homing<a class="headerlink" href="#using-macros-when-homing" title="Permanent link">&para;</a></h4>
 <p>Unlike Klipper, in Kalico, you do not need macros for
-sensorless homing management. Homing current is handled by the TMC block, 
+sensorless homing management. Homing current is handled by the TMC block,
 homing retract distance is used to define a minimum homing distance
 (which can also be manually configured) which is used for sensorless
 homing verification as well as post home retract. In depth guide
@@ -2904,8 +2904,8 @@ power plugs).</p>
 <p>Otherwise, this error is typically the result of incorrect UART pin
 wiring or an incorrect Kalico configuration of the UART pin settings.</p>
 <h3 id="i-keep-getting-unable-to-write-tmc-spi-stepper_x-register-errors">I keep getting "Unable to write tmc spi 'stepper_x' register ..." errors?<a class="headerlink" href="#i-keep-getting-unable-to-write-tmc-spi-stepper_x-register-errors" title="Permanent link">&para;</a></h3>
-<p>This occurs when Kalico is unable to communicate with a tmc2130 or
-tmc5160 driver.</p>
+<p>This occurs when Kalico is unable to communicate with a tmc2130, tmc5160 or
+tmc2160 driver.</p>
 <p>Make sure that the motor power is enabled, as the stepper motor driver
 generally needs motor power before it can communicate with the
 micro-controller.</p>
@@ -2931,7 +2931,7 @@ has disabled itself, it will transition the printer into a "shutdown"
 state.</p>
 <p>It's also possible that a <strong>TMC reports error</strong> shutdown occurs due to
 SPI errors that prevent communication with the driver (on tmc2130,
-tmc5160, or tmc2660). If this occurs, it's common for the reported
+tmc5160, tmc2160, or tmc2660). If this occurs, it's common for the reported
 driver status to show <code>00000000</code> or <code>ffffffff</code> - for example: <code>TMC
 reports error: DRV_STATUS: ffffffff ...</code> OR <code>TMC reports error:
 READRSP@RDSEL2: 00000000 ...</code>. Such a failure may be due to an SPI

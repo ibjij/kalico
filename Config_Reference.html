@@ -941,7 +941,7 @@
           <li class="md-nav__item">
   <a href="#force_move" class="md-nav__link">
     <span class="md-ellipsis">
-      ⚠ [force_move]
+      ⚠️ [force_move]
     </span>
   </a>
   
@@ -1029,6 +1029,15 @@
   <a href="#lis2dw" class="md-nav__link">
     <span class="md-ellipsis">
       [lis2dw]
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lis3dh" class="md-nav__link">
+    <span class="md-ellipsis">
+      [lis3dh]
     </span>
   </a>
   
@@ -4115,7 +4124,7 @@
           <li class="md-nav__item">
   <a href="#force_move" class="md-nav__link">
     <span class="md-ellipsis">
-      ⚠ [force_move]
+      ⚠️ [force_move]
     </span>
   </a>
   
@@ -4203,6 +4212,15 @@
   <a href="#lis2dw" class="md-nav__link">
     <span class="md-ellipsis">
       [lis2dw]
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lis3dh" class="md-nav__link">
+    <span class="md-ellipsis">
+      [lis3dh]
     </span>
   </a>
   
@@ -5355,6 +5373,7 @@
 <h1 id="configuration-reference">Configuration reference<a class="headerlink" href="#configuration-reference" title="Permanent link">&para;</a></h1>
 <p>This document is a reference for options available in the Kalico
 config file.</p>
+<p>Sections and options are marked with an ⚠️ to denote configurations that are changed from stock Klipper.</p>
 <p>The descriptions in this document are formatted so that it is possible
 to cut-and-paste them into a printer config file. See the
 <a href="Installation.html">installation document</a> for information on setting up
@@ -5471,6 +5490,9 @@ pins such as "extra_mcu:ar9" may then be used elsewhere in the config
 #   If the bed mesh should be logged at startup
 #   (helpful for keeping the log clean during development)
 #   The default is True.
+#log_velocity_limit_changes: True
+#   If changes to velocity limits should be logged. If False, velocity limits will only
+#   be logged at rollover. Some slicers emit very frequent SET_VELOCITY_LIMIT commands
 #log_shutdown_info: True
 #   If we should log detailed crash info when an exception occurs
 #   Most of it is overly-verbose and fluff and we still get a stack trace
@@ -7034,7 +7056,7 @@ file for a Marlin compatible M808 G-Code macro.</p>
 <div class="highlight"><pre><span></span><code>[sdcard_loop]
 </code></pre></div>
 
-<h3 id="force_move">⚠ [force_move]<a class="headerlink" href="#force_move" title="Permanent link">&para;</a></h3>
+<h3 id="force_move">⚠️ [force_move]<a class="headerlink" href="#force_move" title="Permanent link">&para;</a></h3>
 <p>This module is enabled by default in Kalico!</p>
 <p>Support manually moving stepper motors for diagnostic purposes. Note,
 using this feature may place the printer in an invalid state - see the
@@ -7090,7 +7112,12 @@ allowing per-filament settings and runtime tuning.</p>
 #   The vertical height by which the nozzle is lifted from the print to
 #   prevent collisions with the print during travel moves when retracted.
 #   The minimum value is 0 mm, the default value is 0 mm, which disables
-#   zhop moves.
+#   zhop moves. The value will be reduced if the zhop move reaches
+#   maximum z.
+#clear_zhop_on_z_moves: False
+#   If True, when a change in Z is sent while toolhead is retracted,
+#   z_hop is cancelled until next retraction. Otherwise,
+#   `z_hop_height` is applied as an offset to all movements.
 </code></pre></div>
 
 <h3 id="gcode_arcs">[gcode_arcs]<a class="headerlink" href="#gcode_arcs" title="Permanent link">&para;</a></h3>
@@ -7210,8 +7237,9 @@ cs_pin:
 <h3 id="lis2dw">[lis2dw]<a class="headerlink" href="#lis2dw" title="Permanent link">&para;</a></h3>
 <p>Support for LIS2DW accelerometers.</p>
 <div class="highlight"><pre><span></span><code>[lis2dw]
-cs_pin:
-#   The SPI enable pin for the sensor. This parameter must be provided.
+#cs_pin:
+#   The SPI enable pin for the sensor. This parameter must be provided
+#   if using SPI.
 #spi_speed: 5000000
 #   The SPI speed (in hz) to use when communicating with the chip.
 #   The default is 5000000.
@@ -7221,6 +7249,43 @@ cs_pin:
 #spi_software_miso_pin:
 #   See the &quot;common SPI settings&quot; section for a description of the
 #   above parameters.
+#i2c_address:
+#   Default is 25 (0x19). If SA0 is high, it would be 24 (0x18) instead.
+#i2c_mcu:
+#i2c_bus:
+#i2c_software_scl_pin:
+#i2c_software_sda_pin:
+#i2c_speed: 400000
+#   See the &quot;common I2C settings&quot; section for a description of the
+#   above parameters. The default &quot;i2c_speed&quot; is 400000.
+#axes_map: x, y, z
+#   See the &quot;adxl345&quot; section for information on this parameter.
+</code></pre></div>
+
+<h3 id="lis3dh">[lis3dh]<a class="headerlink" href="#lis3dh" title="Permanent link">&para;</a></h3>
+<p>Support for LIS3DH accelerometers.</p>
+<div class="highlight"><pre><span></span><code>[lis3dh]
+#cs_pin:
+#   The SPI enable pin for the sensor. This parameter must be provided
+#   if using SPI.
+#spi_speed: 5000000
+#   The SPI speed (in hz) to use when communicating with the chip.
+#   The default is 5000000.
+#spi_bus:
+#spi_software_sclk_pin:
+#spi_software_mosi_pin:
+#spi_software_miso_pin:
+#   See the &quot;common SPI settings&quot; section for a description of the
+#   above parameters.
+#i2c_address:
+#   Default is 25 (0x19). If SA0 is high, it would be 24 (0x18) instead.
+#i2c_mcu:
+#i2c_bus:
+#i2c_software_scl_pin:
+#i2c_software_sda_pin:
+#i2c_speed: 400000
+#   See the &quot;common I2C settings&quot; section for a description of the
+#   above parameters. The default &quot;i2c_speed&quot; is 400000.
 #axes_map: x, y, z
 #   See the &quot;adxl345&quot; section for information on this parameter.
 </code></pre></div>
@@ -8559,14 +8624,17 @@ information.</p>
 #   fan would run with 0.5 at 55°)
 #cooling_hysteresis: 0.0
 #   define the temperature hysteresis for lowering the fan speed
-#   (temperature differences to the last measured value that are lower than
-#   the hysteresis will not cause lowering of the fan speed)
+#   (in simple terms this setting offsets the fan curve when cooling down
+#   by the specified amount of degrees celsius. For example, if the
+#   hysteresis is set to 5°C, the fan curve will be moved by -5°C. This
+#   setting can be used to reduce the effects of quickly changing
+#   temperatures around a target temperature which would cause the fan to
+#   speed up and slow down repeatedly.)
 #heating_hysteresis: 0.0
 #   same as cooling_hysteresis but for increasing the fan speed, it is
 #   recommended to be left at 0 for safety reasons
 #smooth_readings: 10
-#   the amount of readings a median should be taken of to determine the fan
-#   speed at each update interval, the default is 10
+#   This parameter is deprecated and should no longer be used.
 </code></pre></div>
 
 <h3 id="fan_generic">[fan_generic]<a class="headerlink" href="#fan_generic" title="Permanent link">&para;</a></h3>
@@ -9331,15 +9399,15 @@ run_current:
 </code></pre></div>
 
 <h3 id="tmc5160">[tmc5160]<a class="headerlink" href="#tmc5160" title="Permanent link">&para;</a></h3>
-<p>Configure a TMC5160 stepper motor driver via SPI bus. To use this
-feature, define a config section with a "tmc5160" prefix followed by
-the name of the corresponding stepper config section (for example,
-"[tmc5160 stepper_x]").</p>
+<p>Configure a TMC5160 or TMC2160 stepper motor driver via SPI bus.
+To use this feature, define a config section with a "tmc5160" prefix
+followed by the name of the corresponding stepper config section
+(for example, "[tmc5160 stepper_x]").</p>
 <div class="highlight"><pre><span></span><code>[tmc5160 stepper_x]
 cs_pin:
-#   The pin corresponding to the TMC5160 chip select line. This pin
-#   will be set to low at the start of SPI messages and raised to high
-#   after the message completes. This parameter must be provided.
+#   The pin corresponding to the TMC5160 or TMC2160 chip select line.
+#   This pin will be set to low at the start of SPI messages and raised
+#   to high after the message completes. This parameter must be provided.
 #spi_speed:
 #spi_bus:
 #spi_software_sclk_pin:
@@ -9447,8 +9515,8 @@ sense_resistor:
 #driver_BBMCLKS: 4
 #driver_BBMTIME: 0
 #driver_FILT_ISENSE: 0
-#   Set the given register during the configuration of the TMC5160
-#   chip. This may be used to set custom motor parameters. The
+#   Set the given register during the configuration of the TMC5160 or
+#   TMC2160 chip. This may be used to set custom motor parameters. The
 #   defaults for each parameter are next to the parameter name in the
 #   above list.
 #⚠️driver_s2vs_level: 6   # Short to Supply tolerance, from 4 to 15
@@ -9459,9 +9527,9 @@ sense_resistor:
 #diag0_pin:
 #diag1_pin:
 #   The micro-controller pin attached to one of the DIAG lines of the
-#   TMC5160 chip. Only a single diag pin should be specified. The pin
-#   is &quot;active low&quot; and is thus normally prefaced with &quot;^!&quot;. Setting
-#   this creates a &quot;tmc5160_stepper_x:virtual_endstop&quot; virtual pin
+#   TMC5160 or TMC2160 chip. Only a single diag pin should be specified.
+#   The pin is &quot;active low&quot; and is thus normally prefaced with &quot;^!&quot;.
+#   Setting this creates a &quot;tmc5160_stepper_x:virtual_endstop&quot; virtual pin
 #   which may be used as the stepper&#39;s endstop_pin. Doing this enables
 #   &quot;sensorless homing&quot;. (Be sure to also set driver_SGT to an
 #   appropriate sensitivity value.) The default is to not enable

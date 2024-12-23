@@ -1422,6 +1422,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#reset_retraction" class="md-nav__link">
+    <span class="md-ellipsis">
+      RESET_RETRACTION
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1501,6 +1510,15 @@
   <a href="#heater_interrupt" class="md-nav__link">
     <span class="md-ellipsis">
       HEATER_INTERRUPT
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#log_rollover" class="md-nav__link">
+    <span class="md-ellipsis">
+      LOG_ROLLOVER
     </span>
   </a>
   
@@ -2684,6 +2702,21 @@
   </a>
   
 </li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reset_velocity_limit" class="md-nav__link">
+    <span class="md-ellipsis">
+      RESET_VELOCITY_LIMIT
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="RESET_VELOCITY_LIMIT">
+      <ul class="md-nav__list">
         
           <li class="md-nav__item">
   <a href="#set_kinematics_limit" class="md-nav__link">
@@ -5187,6 +5220,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#reset_retraction" class="md-nav__link">
+    <span class="md-ellipsis">
+      RESET_RETRACTION
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -5266,6 +5308,15 @@
   <a href="#heater_interrupt" class="md-nav__link">
     <span class="md-ellipsis">
       HEATER_INTERRUPT
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#log_rollover" class="md-nav__link">
+    <span class="md-ellipsis">
+      LOG_ROLLOVER
     </span>
   </a>
   
@@ -6450,6 +6501,21 @@
   
 </li>
         
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reset_velocity_limit" class="md-nav__link">
+    <span class="md-ellipsis">
+      RESET_VELOCITY_LIMIT
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="RESET_VELOCITY_LIMIT">
+      <ul class="md-nav__list">
+        
           <li class="md-nav__item">
   <a href="#set_kinematics_limit" class="md-nav__link">
     <span class="md-ellipsis">
@@ -6915,6 +6981,7 @@
 <h1 id="g-codes">G-Codes<a class="headerlink" href="#g-codes" title="Permanent link">&para;</a></h1>
 <p>This document describes the commands that Kalico supports. These are
 commands that one may enter into the OctoPrint terminal tab.</p>
+<p>Sections and commands marked with an ⚠️ show commands that are new or behave differently from Klipper</p>
 <h2 id="g-code-commands">G-Code commands<a class="headerlink" href="#g-code-commands" title="Permanent link">&para;</a></h2>
 <p>Kalico supports the following standard G-Code commands:</p>
 <ul>
@@ -7456,34 +7523,35 @@ the filament unretract move to reduce blobbing at seams (the minimum value is
 Z_HOP_HEIGHT determines the vertical height by which the nozzle is lifted from
 the print to prevent collisions with the print during travel moves (the
 minimum value is 0 mm, the standard value is 0 mm, which disables Z-Hop moves).
+If a parameter is set when retracted, the new value will be taken into
+account only after G11 or CLEAR_RETRACTION event.
 SET_RETRACTION is commonly set as part of slicer per-filament configuration, as
 different filaments require different parameter settings. The command can be
 issued at runtime.</p>
 <h4 id="get_retraction">GET_RETRACTION<a class="headerlink" href="#get_retraction" title="Permanent link">&para;</a></h4>
 <p><code>GET_RETRACTION</code>: Queries the current parameters used by the firmware retraction
 module as well as the retract state. RETRACT_LENGTH, RETRACT_SPEED,
-UNRETRACT_EXTRA_LENGTH, UNRETRACT_SPEED, Z_HOP_HEIGHT and RETRACTED (True, if
-retracted) are displayed on the terminal.</p>
+UNRETRACT_EXTRA_LENGTH, UNRETRACT_SPEED, Z_HOP_HEIGHT, RETRACT_STATE (True, if
+retracted), ZHOP_STATE (True, if zhop offset currently applied) are displayed on
+the terminal.</p>
 <h4 id="clear_retraction">CLEAR_RETRACTION<a class="headerlink" href="#clear_retraction" title="Permanent link">&para;</a></h4>
 <p><code>CLEAR_RETRACTION</code>: Clears the current retract state without extruder or
 motion system movement. All flags related to the retract state are reset to
-False and all changes to retraction parameters made via previous SET_RETRACTION
-commands are reset to config values.
-NOTE: The Module contains a lot of redundancy for safety to prevent undesired
-behavior. When printing from virtual SD Card, the printer state is monitored and
-retraction state is cleared if a print is started, canceled or finished or if a
-virtual SD card file is reset. When printing via GCode streaming (e.g. using
-OctoPrint), the retract state is cleared when the steppers are disabled (M84,
+False.</p>
+<p>NOTE: The zhop state is also reset to False when the steppers are disabled (M84,
 typically part of end gcode and standard behavior of OctoPrint if a print is
 canceled) or the printer is homed (G28, typically part of start gcode). Hence,
 upon ending or canceling a print as well as starting a new print via GCode
-streaming or virtual SD card, the printer should always be in unretracted state.
+streaming or virtual SD card, the toolhead will not apply <code>z_hop_height</code> until
+next G11 if filament is retracted.
 Nevertheless, it is recommended to add <code>CLEAR_RETRACTION</code> to your start and end
-gcode to make sure the retract state is reset before and after each print. If a
-print is finished or canceled while retracted and the retract state is not
-cleared, either via <code>CLEAR_RETRACTION</code> without filament or motion system
-movement or G11, the nozzle will stay above the requested z coordinate by the
-set z_hop_height.</p>
+gcode to make sure the retract state is reset before and after each print.</p>
+<h4 id="reset_retraction">RESET_RETRACTION<a class="headerlink" href="#reset_retraction" title="Permanent link">&para;</a></h4>
+<p><code>RESET_RETRACTION</code>: All changes to retraction parameters made via previous
+SET_RETRACTION commands are reset to config values.</p>
+<p>NOTE: It is recommended to add <code>RESET_RETRACTION</code> to your start and end gcode
+(with a possible override in your filament start gcode to set filament-specific
+overrides of firmware retraction defaults via <code>SET_RETRACTION</code>). </p>
 <h3 id="force_move">[force_move]<a class="headerlink" href="#force_move" title="Permanent link">&para;</a></h3>
 <p>The force_move module is automatically loaded, however some commands
 require setting <code>enable_force_move</code> in the
@@ -7527,6 +7595,8 @@ software (see
 clears any error state from the micro-controller.</p>
 <h4 id="heater_interrupt">HEATER_INTERRUPT<a class="headerlink" href="#heater_interrupt" title="Permanent link">&para;</a></h4>
 <p><code>HEATER_INTERRUPT</code>: Interrupts a TEMPERATURE_WAIT command.</p>
+<h4 id="log_rollover">LOG_ROLLOVER<a class="headerlink" href="#log_rollover" title="Permanent link">&para;</a></h4>
+<p><code>LOG_ROLLOVER</code>: Trigger a klippy.log rollover and generate a new log file.</p>
 <h4 id="status">STATUS<a class="headerlink" href="#status" title="Permanent link">&para;</a></h4>
 <p><code>STATUS</code>: Report the Kalico host software status.</p>
 <h4 id="help">HELP<a class="headerlink" href="#help" title="Permanent link">&para;</a></h4>
@@ -8211,6 +8281,11 @@ argument for fields that represent velocities.</p>
 [MINIMUM_CRUISE_RATIO=&lt;value&gt;] [SQUARE_CORNER_VELOCITY=&lt;value&gt;]</code>: This
 command can alter the velocity limits that were specified in the
 printer config file. See the
+<a href="Config_Reference.html#printer">printer config section</a> for a
+description of each parameter.</p>
+<h3 id="reset_velocity_limit">RESET_VELOCITY_LIMIT<a class="headerlink" href="#reset_velocity_limit" title="Permanent link">&para;</a></h3>
+<p><code>RESET_VELOCITY_LIMIT</code>: This command resets the velocity limits to the values
+specified in the printer config file. See the
 <a href="Config_Reference.html#printer">printer config section</a> for a
 description of each parameter.</p>
 <h4 id="set_kinematics_limit">⚠️ SET_KINEMATICS_LIMIT<a class="headerlink" href="#set_kinematics_limit" title="Permanent link">&para;</a></h4>
