@@ -180,7 +180,27 @@ class PAReciprModel(PANonLinearModel):
     def get_func(self):
         ffi_main, ffi_lib = chelper.get_ffi()
         return ffi_lib.pressure_advance_recipr_model_func
+    
+    
+class PASigmoidModel(PANonLinearModel):
+    name = "sigmoid"
 
+    def __init__(self, config=None):
+        PANonLinearModel.__init__(self, config)
+
+    def get_func(self):
+        ffi_main, ffi_lib = chelper.get_ffi()
+        return ffi_lib.pressure_advance_sigmoid_model_func
+
+
+class PALogModel(PANonLinearModel):
+    name = 'log'
+    def __init__(self, config=None):
+        PANonLinearModel.__init__(self, config)
+    def get_func(self):
+        ffi_main, ffi_lib = chelper.get_ffi()
+        return ffi_lib.pressure_advance_log_model_func
+    
 
 class ExtruderSmoother:
     def __init__(self, config, pa_model):
@@ -355,6 +375,26 @@ class PAReciprModel(PANonLinearModel):
     def get_func(self):
         ffi_main, ffi_lib = chelper.get_ffi()
         return ffi_lib.pressure_advance_recipr_model_func
+    
+
+class PASigmoidModel(PANonLinearModel):
+    name = "sigmoid"
+
+    def __init__(self, config=None):
+        PANonLinearModel.__init__(self, config)
+
+    def get_func(self):
+        ffi_main, ffi_lib = chelper.get_ffi()
+        return ffi_lib.pressure_advance_sigmoid_model_func
+
+
+class PALogModel(PANonLinearModel):
+    name = 'log'
+    def __init__(self, config=None):
+        PANonLinearModel.__init__(self, config)
+    def get_func(self):
+        ffi_main, ffi_lib = chelper.get_ffi()
+        return ffi_lib.pressure_advance_log_model_func
 
 
 class ExtruderStepper:
@@ -362,7 +402,9 @@ class ExtruderStepper:
         PALinearModel.name: PALinearModel,
         PATanhModel.name: PATanhModel,
         PAReciprModel.name: PAReciprModel,
-    }
+        PASigmoidModel.name: PASigmoidModel,
+        PALogModel.name: PALogModel,
+}
 
     def __init__(self, config):
         self.printer = config.get_printer()

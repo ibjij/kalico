@@ -4,7 +4,7 @@
 //
 // This file may be distributed under the terms of the GNU GPLv3 license.
 
-#include <math.h> // tanh
+#include <math.h> // tanh, exp
 #include <stddef.h> // offsetof
 #include <stdlib.h> // malloc
 #include <string.h> // memset
@@ -181,6 +181,29 @@ pressure_advance_recipr_model_func(double position, double pa_velocity
     return position;
 }
 
+double __visible
+pressure_advance_sigmoid_model_func(double position, double pa_velocity,
+                                    struct pressure_advance_params *pa_params) {
+    position += pa_params->linear_advance * pa_velocity;
+    if (pa_params->linear_offset) {
+        double rel_velocity = pa_velocity / pa_params->linearization_velocity;
+        position += pa_params->linear_offset / (1.0 + exp(-rel_velocity));
+    }
+    return position;
+}
+
+double __visible
+pressure_advance_log_model_func(double position, double pa_velocity
+                                , struct pressure_advance_params *pa_params)
+{
+    position += pa_params->linear_advance * pa_velocity;
+    if (pa_params->nonlinear_offset) {
+        double rel_velocity = pa_velocity / pa_params->linearization_velocity;
+        position += pa_params->nonlinear_offset * log(1. + rel_velocity);
+    }
+    return position;
+}
+
 static double
 extruder_calc_position(struct stepper_kinematics *sk, struct move *m
                        , double move_time)
@@ -310,7 +333,7 @@ extruder_stepper_alloc(void)
     struct extruder_stepper *es = malloc(sizeof(*es));
     memset(es, 0, sizeof(*es));
     es->sk.calc_position_cb = extruder_calc_position;
-    es->pa_func = pressure_advance_tanh_model_func;
+    es->pa_func = pressure_advance_tanh_model_func; // Default model, can be changed dynamically
     es->sk.active_flags = AF_X | AF_Y | AF_Z;
     return &es->sk;
 }
